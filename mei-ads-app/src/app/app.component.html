@@ -1,0 +1,19 @@
+<h1>
+  {{title}}
+</h1>
+
+<section>
+
+  <div class="content">
+    <button mat-raised-button color="primary" routerLink="">Home</button>
+    <button mat-raised-button color="primary" routerLink="/schedule">Schedule</button>
+    <button mat-raised-button color="primary" routerLink="/create-appointment">Create new Appointment</button>
+
+    <div>
+      <input #csvInput hidden="true" type="file" onclick="this.value=null" (change)="csvInputChange($event)" accept=".xlsx"/>
+      <button mat-flat-button color="primary" (click)="csvInput.click()">Import new appointments (XLSX)</button>
+    </div>
+  </div>
+</section>
+
+<router-outlet></router-outlet>

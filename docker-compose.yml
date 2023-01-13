@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  server:
+    image: mei-ads-server:latest
+    container_name: mei-ads-server-v1
+    build:
+      context: ./mei-ads-server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - communication-tier
+  app:
+    image: mei-ads-app:latest
+    container_name: mei-ads-app-v1
+    build:
+      context: ./mei-ads-app
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    networks:
+      - communication-tier
+
+networks:
+  communication-tier:
+    driver: bridge
