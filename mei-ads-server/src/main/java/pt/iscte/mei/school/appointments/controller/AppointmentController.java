@@ -2,11 +2,7 @@ package pt.iscte.mei.school.appointments.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pt.iscte.mei.school.appointments.application.AppointmentApplicationService;
 import pt.iscte.mei.school.appointments.application.dto.RegisterAppointmentDTO;
 import pt.iscte.mei.school.appointments.model.Appointment;
@@ -35,4 +31,15 @@ public class AppointmentController {
         return ResponseEntity.ok(appointments);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Appointment> findById(@PathVariable("id") String id) {
+        Appointment appointment = service.findById(id);
+        return ResponseEntity.ok(appointment);
+    }
+
+    @PutMapping()
+    public ResponseEntity<Void> findById(@RequestBody() Appointment appointment) {
+        service.update(appointment);
+        return ResponseEntity.ok().build();
+    }
 }

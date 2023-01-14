@@ -109,4 +109,15 @@ public class AppointmentApplicationService {
         return repository.findAll();
     }
 
+    public Appointment findById(String id) {
+        log.info("Searching appointment by id= [{}]", id);
+
+        return repository.findById(id).orElseThrow(MeiAdsSchoolAppointmentNotPermittedException::new);
+    }
+
+    public void update(Appointment appointment) {
+        log.info("Updating appointment by id= [{}]", appointment.getId());
+
+        repository.save(appointment);
+    }
 }

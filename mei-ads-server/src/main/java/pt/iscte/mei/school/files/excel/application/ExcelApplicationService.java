@@ -9,16 +9,12 @@ import org.springframework.web.multipart.MultipartFile;
 import pt.iscte.mei.school.appointments.application.AppointmentApplicationService;
 import pt.iscte.mei.school.appointments.application.dto.ReadXLSXFileAppointmentDTO;
 import pt.iscte.mei.school.appointments.model.Appointment;
-import pt.iscte.mei.school.classrooms.application.ClassroomApplicationService;
 import pt.iscte.mei.school.classrooms.model.Classroom;
 import pt.iscte.mei.school.classrooms.repository.ClassroomRepository;
-import pt.iscte.mei.school.courses.application.CourseApplicationService;
 import pt.iscte.mei.school.courses.model.Course;
 import pt.iscte.mei.school.courses.repository.CourseRepository;
-import pt.iscte.mei.school.curricularunits.application.CurricularUnitApplicationService;
 import pt.iscte.mei.school.curricularunits.model.CurricularUnit;
 import pt.iscte.mei.school.curricularunits.repository.CurricularUnitRepository;
-import pt.iscte.mei.school.features.application.FeatureApplicationService;
 import pt.iscte.mei.school.features.model.Feature;
 import pt.iscte.mei.school.features.repository.FeatureRepository;
 import pt.iscte.mei.school.files.excel.helper.ExcelHelper;
@@ -26,6 +22,7 @@ import pt.iscte.mei.school.files.excel.helper.ExcelHelper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Predicate;
 
 @Service
 @Transactional
@@ -58,22 +55,37 @@ public class ExcelApplicationService {
                 CurricularUnit curricularUnit = curricularUnitRepository.save(o.getCurricularUnit());
                 Feature feature = featureRepository.save(o.getFeature());
 
-                Classroom classroomBuilder = Classroom.builder()
-                        .name(o.getClassroom().getName())
-                        .caracteristics(List.of(feature.getName()))
-                        .capacity(o.getClassroom().getCapacity())
-                        .build();
+                Classroom classroomBuilder = Classroom.builder().build();
+                if (o.getClassroom().getName() != null) {
 
-                Classroom classroom = classroomRepository.save(classroomBuilder);
+                    classroomBuilder = Classroom.builder()
+                            .name(o.getClassroom().getName())
+                            .caracteristics(List.of(feature.getName()))
+                            .capacity(o.getClassroom().getCapacity())
+                            .build();
+                } else {
+
+                    List<Classroom> classrooms = classroomRepository.findAll();
+
+                    int capacityRequired = o.getClassroom().getCapacity();
+
+                    Predicate<Classroom> filterClassroomEqualOrHigher = i -> i.getCapacity() >= capacityRequired;
+                    Predicate<Classroom> filterClassroomNear = i -> ((float) (i.getCapacity() / capacityRequired)) >= 0.8;
+
+                    classroomBuilder = classrooms.stream()
+                            .filter(filterClassroomEqualOrHigher.or(filterClassroomNear))
+                            .findFirst()
+                            .orElse(o.getClassroom());
+                }
+
                 Course course = courseRepository.save(o.getCourse());
 
                 Appointment appointment = o.getAppointment();
                 appointment.setCourse(course.getId());
-                appointment.setClassroom(classroom.getId());
+                appointment.setClassroom(classroomBuilder.getId());
                 appointment.setCurricularUnit(curricularUnit.getId());
                 appointmentService.register(appointment);
             });
-            //TODO: call all repositories to save the models
         } catch (IOException e) {
             throw new RuntimeException("fail to store excel data: " + e.getMessage());
         }
