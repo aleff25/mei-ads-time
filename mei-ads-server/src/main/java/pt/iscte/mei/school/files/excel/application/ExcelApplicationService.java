@@ -2,6 +2,7 @@ package pt.iscte.mei.school.files.excel.application;
 
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,9 +57,16 @@ public class ExcelApplicationService {
                 Feature feature = featureRepository.save(o.getFeature());
 
                 Classroom classroomBuilder = Classroom.builder().build();
-                if (o.getClassroom().getName() != null) {
+
+                if (StringUtils.isNotBlank(o.getClassroom().getName())) {
+
+                    String formattedName = StringUtils.replace(o.getClassroom().getName(), " ", "_");
+                    Classroom classroom = classroomRepository.findByName(formattedName);
+
+                    String id = classroom != null ? classroom.getId() : "";
 
                     classroomBuilder = Classroom.builder()
+                            .id(id)
                             .name(o.getClassroom().getName())
                             .caracteristics(List.of(feature.getName()))
                             .capacity(o.getClassroom().getCapacity())

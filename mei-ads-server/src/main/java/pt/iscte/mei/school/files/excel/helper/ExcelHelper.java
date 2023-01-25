@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -82,6 +83,7 @@ public class ExcelHelper {
             Sheet sheet = workbook.getSheetAt(0);
             DataFormatter dataFormatter = new DataFormatter();
             List<ReadXLSXFileAppointmentDTO> data = new ArrayList<>();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yy");
 
             int index = 0;
             for (Row row : sheet) {
@@ -103,16 +105,20 @@ public class ExcelHelper {
                         .capacity(convertToInteger(dataFormatter.formatCellValue(row.getCell(13))))
                         .build();
 
-                String startHour = dataFormatter.formatCellValue(row.getCell(8));
-                String endHour = dataFormatter.formatCellValue(row.getCell(9));
-                Date appointmentDate = row.getCell(10).getDateCellValue();
+                String startHourStr = dataFormatter.formatCellValue(row.getCell(8));
+                String endHourStr = dataFormatter.formatCellValue(row.getCell(9));
 
-                appointmentDate.setTime(Long.parseLong(startHour.split(":")[0]));
-                LocalDateTime startAppointmentDate = appointmentDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                String dateStr = dataFormatter.formatCellValue(row.getCell(10));
+                LocalDate localDate = LocalDate.parse(dateStr, formatter);
 
-                appointmentDate.setTime(Long.parseLong(endHour.split(":")[0]));
-                LocalDateTime endAppointmentDate = appointmentDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                int startHour = Integer.parseInt(startHourStr.split(":")[0]);
+                int startMinute = Integer.parseInt(startHourStr.split(":")[1]);
 
+                int endHour = Integer.parseInt(endHourStr.split(":")[0]);
+                int endMinute = Integer.parseInt(endHourStr.split(":")[1]);
+
+                LocalDateTime startAppointmentDate = localDate.atTime(startHour, startMinute);
+                LocalDateTime endAppointmentDate = localDate.atTime(endHour, endMinute);
 
                 Appointment appointment = Appointment.builder()
                         .startDate(startAppointmentDate)
